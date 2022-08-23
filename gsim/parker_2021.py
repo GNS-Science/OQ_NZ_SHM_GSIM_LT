@@ -213,20 +213,34 @@ def _magnitude_scaling(sfx, C, C_PGA, mag, m_b):
     return fm, fm_pga
 
 
+# def _non_linear_term(C, imt, vs30, fp, fm, c0, fd=0):
+#     """
+#     Non-linear site term.This was implemented in 2020 version of the model.
+#     """
+#     # fd for slab only
+#     pgar = np.exp(fp + fm + c0 + fd)
+#
+#     if hasattr(imt, "period") and imt.period >= 3:
+#         fnl = 0
+#     else:
+#         fnl = C["f4"] * (np.exp(C["f5"] * (
+#             np.minimum(vs30, CONSTANTS["vref_fnl"]) - CONSTANTS["Vb"]))
+#              - math.exp(C["f5"] * (CONSTANTS["vref_fnl"] - CONSTANTS["Vb"])))
+#         fnl *= np.log((pgar + CONSTANTS["f3"]) / CONSTANTS["f3"])
+#
+#     return fnl
+
 def _non_linear_term(C, imt, vs30, fp, fm, c0, fd=0):
     """
-    Non-linear site term.
+    Non-linear site term. The hard coded fnl = 0 for T >=3 is removed in the 2021 (EQS) version of the model (personal communication with Grace).
     """
     # fd for slab only
     pgar = np.exp(fp + fm + c0 + fd)
 
-    if hasattr(imt, "period") and imt.period >= 3:
-        fnl = 0
-    else:
-        fnl = C["f4"] * (np.exp(C["f5"] * (
-            np.minimum(vs30, CONSTANTS["vref_fnl"]) - CONSTANTS["Vb"]))
+    fnl = C["f4"] * (np.exp(C["f5"] * (np.minimum(vs30, CONSTANTS["vref_fnl"]) - CONSTANTS["Vb"]))
              - math.exp(C["f5"] * (CONSTANTS["vref_fnl"] - CONSTANTS["Vb"])))
-        fnl *= np.log((pgar + CONSTANTS["f3"]) / CONSTANTS["f3"])
+
+    fnl *= np.log((pgar + CONSTANTS["f3"]) / CONSTANTS["f3"])
 
     return fnl
 
@@ -311,8 +325,7 @@ def get_stddevs(C, rrup, vs30):
 
 def get_nonlinear_stddevs(C, C_PGA, imt, pgar, rrup, vs30):
     """
-    Get the nonlinear tau and phi terms for Parker's model. This routine is based upon Peter Stafford suggested implementation shared on slack, which is based on AG20 implementation.
-    However, note that in the median T>=3.0 there is no soil nonlinearity in the origianl model of Parker.
+    This NZ specific modification. Get the nonlinear tau and phi terms for Parker's model. This routine is based upon Peter Stafford suggested implementation shared on slack, which is based on AG20 implementation.
     """
     period = imt.period
     # Linear Tau
@@ -369,12 +382,10 @@ def get_nonlinear_stddevs(C, C_PGA, imt, pgar, rrup, vs30):
     phi2_NL = phi_lin**2 + partial_f_pga**2 * phi_B_pga**2 + 2 * partial_f_pga * phi_B_pga*phi_B * rhoW
     tau2_NL = tau_lin**2 + partial_f_pga**2 * tau_lin_pga**2 + 2 * partial_f_pga * tau_lin_pga*tau_lin * rhoB
 
-    #return [partial_f_pga, np.sqrt(tau2_NL), np.sqrt(phi2_NL)]
     return [np.sqrt(tau2_NL + phi2_NL), np.sqrt(tau2_NL), np.sqrt(phi2_NL)]
 
 def get_sigma_epistemic (trt, region, imt):
-    ''' Currently the epistemic sigma model is applied to only Global model. As for NZ we are using only the global model.
-    Henec below the coefficients are just for the global model.'''
+    ''' This is a NZ-NSHM-2022 specific modification. Currently the epistemic sigma model is applied to Global model only. As for NZ we are using only the global model. Henec below the coefficients are just for the global model.'''
 
     if region is None:
         if trt == const.TRT.SUBDUCTION_INTRASLAB:
@@ -406,9 +417,7 @@ def get_sigma_epistemic (trt, region, imt):
 
 def get_backarc_term(trt, imt, ctx):
 
-    """ The backarc correction factors to be applied with the ground motion prediction. In the NZ context, it is applied to only subduction intraslab events.
-    It is essentially the correction factor taken from BC Hydro 2016. Abrahamson et al. (2016) Earthquake Spectra.
-    The correction is applied only for backarc sites as function of distance."""
+    """ This is a NZ NSHM-2022 specific modification. The backarc correction factors to be applied with the ground motion prediction. In the NZ context, it is applied to only subduction intraslab events. It is essentially the correction factor taken from BC Hydro 2016. Abrahamson et al. (2016) Earthquake Spectra. The correction is applied only for sites in the backarc region as function of distance."""
 
     periods =  [0.0, 0.02, 0.05, 0.075, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.75, 1.0, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0, 7.5, 10.0]
     theta7s = [1.0988, 1.0988, 1.2536, 1.4175, 1.3997, 1.3582, 1.1648, 0.994, 0.8821, 0.7046, 0.5799, 0.5021, 0.3687, 0.1746,
