@@ -426,8 +426,7 @@ def get_basin_response_term(C, region, vs30, z_value):
 
 def get_partial_derivative_site_pga(C, vs30, pga1100):
     """
-    Defines the partial derivative of the site term with respect to the PGA
-    on reference rock, described in equation 5.9 (corrected in Erratum)
+    Defines the partial derivative of the site term with respect to the PGA on reference rock. Note that this is taken from AG20. The only difference is Vsref which is 1000 m/s in AG20. This function is added to get the nonlinear correction in aleatory sigma given below.
     """
     dfsite_dlnpga = np.zeros(vs30.shape)
     idx = vs30 <= C["k1"]
@@ -440,7 +439,7 @@ def get_partial_derivative_site_pga(C, vs30, pga1100):
 
 def get_nonlinear_stddevs(C, C_PGA, imt, vs30, pga1100):
     """
-    Get the heteroskedastic within-event and between-event standard deviation
+    Get the heteroskedastic within-event and between-event standard deviation. This routine gives the aleatory sigma values corrected for nonlinearity in the soil response.
     """
     period = imt.period
 
@@ -558,8 +557,80 @@ def _retrieve_sigma_mu_data(trt, region):
     fle.close()
     return sigma_mu
 
+def get_sigma_mu_adjustment(model, imt, mags, rrups):
+    """
+    Returns the sigma mu adjustment factor for the given scenario set by
+    interpolation from the tables
 
-def get_sigma_mu_adjustment(model, imt, mag, rrup):
+    :param dict model:
+        Sigma mu model as a dictionary containing the sigma mu tables
+        (as output from _retrieve_sigma_mu_data)
+    :param imt:
+        Intensity measure type
+    :param mag:
+        Magnitude
+    :param rrup:
+        Distances
+
+    :returns:
+        sigma_mu for the scenarios (numpy.ndarray)
+    """
+
+    # No correction factor needed
+    if not model:
+        return np.zeros_like(mags)
+
+    # Output
+    out = np.zeros_like(mags)
+
+    # Work on PGA and PGV
+    if imt.string in "PGA PGV":
+        sigma_mu = model[imt.string]
+
+        for imag, mag in enumerate(mags):
+
+            if mag <= model["M"][0]:
+                sigma_mu_m = sigma_mu[0, :]
+            elif mag >= model["M"][-1]:
+                sigma_mu_m = sigma_mu[-1, :]
+            else:
+                intpl1 = interp1d(model["M"], sigma_mu, axis=0)
+                sigma_mu_m = intpl1(mag)
+
+            # Linear interpolation with distance
+            intpl2 = interp1d(model["R"], sigma_mu_m, bounds_error=False,
+                              fill_value=(sigma_mu_m[0], sigma_mu_m[-1]))
+            out[imag] = intpl2(rrups[imag])
+
+        return out
+
+    # Other IMTs
+    for imag, mag in enumerate(mags):
+
+        if mag <= model["M"][0]:
+            sigma_mu_m = model["SA"][0, :, :]
+        elif mag >= model["M"][-1]:
+            sigma_mu_m = model["SA"][-1, :, :]
+        else:
+            intpl1 = interp1d(model["M"], model["SA"], axis=0)
+            sigma_mu_m = intpl1(mag)
+
+        # Get values for period - N.B. ln T, linear sigma mu interpolation
+        if imt.period <= model["periods"][0]:
+            sigma_mu_t = sigma_mu_m[:, 0]
+        elif imt.period >= model["periods"][-1]:
+            sigma_mu_t = sigma_mu_m[:, -1]
+        else:
+            intpl2 = interp1d(np.log(model["periods"]), sigma_mu_m, axis=1)
+            sigma_mu_t = intpl2(np.log(imt.period))
+
+        intpl3 = interp1d(model["R"], sigma_mu_t, bounds_error=False,
+                          fill_value=(sigma_mu_t[0], sigma_mu_t[-1]))
+        out[imag] = intpl3(rrups[imag])
+
+    return out
+
+def get_sigma_mu_adjustment_old(model, imt, mag, rrup):
     """
     Returns the sigma mu adjustment factor for the given scenario set by
     interpolation from the tables
@@ -816,9 +887,8 @@ class KuehnEtAl2020SInter(GMPE):
                                           ctx, pga1100) + get_backarc_term(trt, imt, ctx)
             # Apply the sigma mu adjustment if necessary
             if self.sigma_mu_epsilon:
-                [mag] = np.unique(np.round(ctx.mag, 2))
-                sigma_mu_adjust = get_sigma_mu_adjustment(
-                    self.sigma_mu_model, imt, mag, ctx.rrup)
+                #[mag] = np.unique(np.round(ctx.mag, 2))
+                sigma_mu_adjust = get_sigma_mu_adjustment(self.sigma_mu_model, imt, ctx.mag, ctx.rrup)
                 mean[m] += self.sigma_mu_epsilon * sigma_mu_adjust
             # Get standard deviations
             if self.which_sigma == "Modified":

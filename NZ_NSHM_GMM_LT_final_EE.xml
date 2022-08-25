@@ -199,29 +199,29 @@
                     <uncertaintyWeight>0.072</uncertaintyWeight>
                 </logicTreeBranch>
 
-                <!--<logicTreeBranch branchID= "Kuehn2020I_GLO_upper">
+                <logicTreeBranch branchID= "Kuehn2020I_GLO_upper">
                     <uncertaintyModel>[KuehnEtAl2020SInter]
                         region = "GLO"
                         sigma_mu_epsilon = 1.28155
                     </uncertaintyModel>
-                    <uncertaintyWeight>0.075</uncertaintyWeight>
-                </logicTreeBranch> -->
+                    <uncertaintyWeight>0.072</uncertaintyWeight>
+                </logicTreeBranch>
 
                 <logicTreeBranch branchID= "Kuehn2020I_GLO_center">
                     <uncertaintyModel>[KuehnEtAl2020SInter]
                         region = "GLO"
                         sigma_mu_epsilon = 0.0
                     </uncertaintyModel>
-                    <uncertaintyWeight>0.24</uncertaintyWeight>
+                    <uncertaintyWeight>0.096</uncertaintyWeight>
                 </logicTreeBranch>
 
-                <!--<logicTreeBranch branchID= "Kuehn2020I_GLO_lower">
+                <logicTreeBranch branchID= "Kuehn2020I_GLO_lower">
                     <uncertaintyModel>[KuehnEtAl2020SInter]
                         region = "GLO"
                         sigma_mu_epsilon = -1.28155
                     </uncertaintyModel>
-                    <uncertaintyWeight>0.075</uncertaintyWeight>
-                </logicTreeBranch> -->
+                    <uncertaintyWeight>0.072</uncertaintyWeight>
+                </logicTreeBranch>
             </logicTreeBranchSet>
 
             <logicTreeBranchSet uncertaintyType="gmpeModel" branchSetID="bs_slab"
@@ -290,29 +290,29 @@
                     <uncertaintyWeight>0.069</uncertaintyWeight>
                 </logicTreeBranch>
 
-                <!--<logicTreeBranch branchID= "Kuehn2020SS_GLO_upper">
+                <logicTreeBranch branchID= "Kuehn2020SS_GLO_upper">
                     <uncertaintyModel>[KuehnEtAl2020SSlab]
                         region = "GLO"
                         sigma_mu_epsilon = 1.28155
                     </uncertaintyModel>
-                    <uncertaintyWeight>0.075</uncertaintyWeight>
-                </logicTreeBranch>-->
+                    <uncertaintyWeight>0.072</uncertaintyWeight>
+                </logicTreeBranch>
 
                 <logicTreeBranch branchID= "Kuehn2020SS_GLO_center">
                     <uncertaintyModel>[KuehnEtAl2020SSlab]
                         region = "GLO"
                         sigma_mu_epsilon = 0.0
                     </uncertaintyModel>
-                    <uncertaintyWeight>0.24</uncertaintyWeight>
+                    <uncertaintyWeight>0.096</uncertaintyWeight>
                 </logicTreeBranch>
 
-                <!--<logicTreeBranch branchID= "Kuehn2020SS_GLO_lower">
+                <logicTreeBranch branchID= "Kuehn2020SS_GLO_lower">
                     <uncertaintyModel>[KuehnEtAl2020SSlab]
                         region = "GLO"
                         sigma_mu_epsilon = -1.28155
                     </uncertaintyModel>
-                    <uncertaintyWeight>0.075</uncertaintyWeight>
-                </logicTreeBranch> -->
+                    <uncertaintyWeight>0.072</uncertaintyWeight>
+                </logicTreeBranch>
             </logicTreeBranchSet>
     </logicTree>
 </nrml>
