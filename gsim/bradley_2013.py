@@ -441,8 +441,8 @@ def _interp_function(y_ip1, y_i, t_ip1, t_i, imt_per):
     return y_i + (y_ip1 - y_i) / (t_ip1 - t_i) * (imt_per - t_i)
 
 def get_epistemic_sigma(ctx):
-    """This function gives the epistemic sigma computed following USGS-2014 approach.
-    However, the epistemic sigma is based on NZ SMDB v2.3"""
+    """This function gives the epistemic sigma computed following USGS-2014 approach. Also, note that the events are counted in each magnitude and distance bins.
+    However, the epistemic sigma is based on NZ SMDB v1.0"""
 
     n = 2
     dist_func_5_6 = np.where(ctx.rrup <=10, 0.4*np.sqrt(n/11), np.where((ctx.rrup > 10) & (ctx.rrup <30), 0.4*np.sqrt(n/38), 0.4*np.sqrt(n/94)))
